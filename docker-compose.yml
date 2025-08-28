@@ -1,0 +1,24 @@
+services:
+  my-devbox:
+    init: true
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - USER=${USER}
+        - USER_ID=${USER_ID}
+        - GROUP_ID=${GROUP_ID}
+        - DOCKER_GROUP_ID=${DOCKER_GROUP_ID}
+        - HOSTNAME=${HOSTNAME}
+    image: local/dood-sshd
+    container_name: "${USER}-dood-sshd"
+    hostname: ${HOSTNAME}
+    ports:
+      - "${HOSTPORT}:22"
+    volumes:
+      - ./data:/home/${USER}/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    stdin_open: true
+    tty: true
+    
