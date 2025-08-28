@@ -103,7 +103,7 @@ RUN apt-get update && apt-get install -y docker-ce-cli
 FROM docker_setup AS ssh_setup
 USER root
 
-COPY ./authorized_keys /home/${USER}/.ssh/authorized_keys
+COPY ./authorized_keys /home/${DEV_USER}/.ssh/authorized_keys
 RUN touch /home/${DEV_USER}/.ssh/config
 
 RUN chown -R ${DEV_USER}:${DEV_USER} /home/${DEV_USER}/.ssh \
