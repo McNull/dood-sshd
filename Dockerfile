@@ -54,35 +54,35 @@ RUN apt-get update \
   && apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
 
-ARG USER=null
-ENV USER=${USER}
-ARG USER_ID=1000
-ENV USER_ID=${USER_ID}
-ARG GROUP_ID=1000
-ENV GROUP_ID=${GROUP_ID}
-ARG HOSTNAME=dood-sshd
-ENV HOSTNAME=${HOSTNAME}
+ARG DEV_USER=null
+ENV DEV_USER=${DEV_USER}
+ARG DEV_USER_ID=1000
+ENV DEV_USER_ID=${DEV_USER_ID}
+ARG DEV_GROUP_ID=1000
+ENV DEV_GROUP_ID=${DEV_GROUP_ID}
+ARG DEV_HOSTNAME=dood-sshd
+ENV DEV_HOSTNAME=${DEV_HOSTNAME}
 
 ENV TERM=xterm-256color
 
-RUN groupadd -g ${GROUP_ID} ${USER} \
-    && useradd --uid ${USER_ID} --gid ${GROUP_ID} --groups sudo --create-home --shell /bin/bash ${USER} \
-    && mkdir -p /home/${USER}/data \
-    && chown ${USER}:${USER} /home/${USER}/data \
-    && echo "${USER} ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/${USER} \
-    && chmod 0440 /etc/sudoers.d/${USER}
+RUN groupadd -g ${DEV_GROUP_ID} ${DEV_USER} \
+    && useradd --uid ${DEV_USER_ID} --gid ${DEV_GROUP_ID} --groups sudo --create-home --shell /bin/bash ${DEV_USER} \
+    && mkdir -p /home/${DEV_USER}/data \
+    && chown ${DEV_USER}:${DEV_USER} /home/${DEV_USER}/data \
+    && echo "${DEV_USER} ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/${DEV_USER} \
+    && chmod 0440 /etc/sudoers.d/${DEV_USER}
 
 # ----------------------------------
 # docker setup
 FROM base AS docker_setup
 
 # Create docker group 
-ARG DOCKER_GROUP_ID=999
-ENV DOCKER_GROUP_ID=${DOCKER_GROUP_ID} 
-RUN groupadd -g ${DOCKER_GROUP_ID} docker
+ARG DEV_DOCKER_GROUP_ID=999
+ENV DEV_DOCKER_GROUP_ID=${DEV_DOCKER_GROUP_ID}
+RUN groupadd -g ${DEV_DOCKER_GROUP_ID} docker
 
 # Add user to docker group
-RUN usermod -aG docker ${USER}
+RUN usermod -aG docker ${DEV_USER}
 
 # Add Docker's official GPG key:
 RUN install -m 0755 -d /etc/apt/keyrings
@@ -104,22 +104,22 @@ FROM docker_setup AS ssh_setup
 USER root
 
 COPY ./authorized_keys /home/${USER}/.ssh/authorized_keys
-RUN touch /home/${USER}/.ssh/config
+RUN touch /home/${DEV_USER}/.ssh/config
 
-RUN chown -R ${USER}:${USER} /home/${USER}/.ssh \
-    && chmod 700 /home/${USER}/.ssh \
-    && chmod 600 /home/${USER}/.ssh/authorized_keys \
-    && chmod 644 /home/${USER}/.ssh/config
+RUN chown -R ${DEV_USER}:${DEV_USER} /home/${DEV_USER}/.ssh \
+    && chmod 700 /home/${DEV_USER}/.ssh \
+    && chmod 600 /home/${DEV_USER}/.ssh/authorized_keys \
+    && chmod 644 /home/${DEV_USER}/.ssh/config
 
 RUN mkdir -p /var/run/sshd
 # Generate SSH host keys
 # RUN ssh-keygen -A
 EXPOSE 22
 
-USER ${USER}
+USER ${DEV_USER}
 
 # # Set Git global configuration for user identity
-RUN git config --global user.email "${USER}@${HOSTNAME}" && \
-    git config --global user.name "${USER}"
+RUN git config --global user.email "${DEV_USER}@${DEV_HOSTNAME}" && \
+    git config --global user.name "${DEV_USER}"
 
 CMD ["sudo", "/bin/sh", "-c", "trap 'kill -TERM $PID' TERM INT; /usr/sbin/sshd -D & PID=$!; wait $PID; trap - TERM INT; wait $PID"]
