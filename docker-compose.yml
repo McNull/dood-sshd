@@ -9,6 +9,7 @@ services:
         - DEV_USER=${DEV_USER}
         - DEV_USER_ID=${DEV_USER_ID}
         - DEV_GROUP_ID=${DEV_GROUP_ID}
+        - DEV_DOCKER_GROUP=${DEV_DOCKER_GROUP}
         - DEV_DOCKER_GROUP_ID=${DEV_DOCKER_GROUP_ID}
         - DEV_HOSTNAME=${DEV_HOSTNAME}
     image: local/dood-sshd

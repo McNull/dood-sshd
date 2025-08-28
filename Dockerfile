@@ -1,5 +1,21 @@
 FROM ubuntu:24.04 AS base
 
+ARG DEV_USER=null
+ARG DEV_USER_ID=1000
+ARG DEV_DOCKER_GROUP=docker
+ARG DEV_DOCKER_GROUP_ID=999
+ARG DEV_GROUP_ID=1000
+ARG DEV_HOSTNAME=dood-sshd
+
+ENV DEV_USER=${DEV_USER}
+ENV DEV_USER_ID=${DEV_USER_ID}
+ENV DEV_DOCKER_GROUP=${DEV_DOCKER_GROUP}
+ENV DEV_DOCKER_GROUP_ID=${DEV_DOCKER_GROUP_ID}
+ENV DEV_GROUP_ID=${DEV_GROUP_ID}
+ENV DEV_HOSTNAME=${DEV_HOSTNAME}
+
+ENV TERM=xterm-256color
+
 RUN apt-get update \
 	&& apt-get install -y \
 	curl \
@@ -54,16 +70,6 @@ RUN apt-get update \
   && apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
 
-ARG DEV_USER=null
-ENV DEV_USER=${DEV_USER}
-ARG DEV_USER_ID=1000
-ENV DEV_USER_ID=${DEV_USER_ID}
-ARG DEV_GROUP_ID=1000
-ENV DEV_GROUP_ID=${DEV_GROUP_ID}
-ARG DEV_HOSTNAME=dood-sshd
-ENV DEV_HOSTNAME=${DEV_HOSTNAME}
-
-ENV TERM=xterm-256color
 
 RUN groupadd -g ${DEV_GROUP_ID} ${DEV_USER} \
     && useradd --uid ${DEV_USER_ID} --gid ${DEV_GROUP_ID} --groups sudo --create-home --shell /bin/bash ${DEV_USER} \
@@ -77,12 +83,12 @@ RUN groupadd -g ${DEV_GROUP_ID} ${DEV_USER} \
 FROM base AS docker_setup
 
 # Create docker group 
-ARG DEV_DOCKER_GROUP_ID=999
-ENV DEV_DOCKER_GROUP_ID=${DEV_DOCKER_GROUP_ID}
-RUN groupadd -g ${DEV_DOCKER_GROUP_ID} docker
+# ARG DEV_DOCKER_GROUP_ID=999
+# ENV DEV_DOCKER_GROUP_ID=${DEV_DOCKER_GROUP_ID}
+RUN groupadd -g ${DEV_DOCKER_GROUP_ID} ${DEV_DOCKER_GROUP}
 
 # Add user to docker group
-RUN usermod -aG docker ${DEV_USER}
+RUN usermod -aG ${DEV_DOCKER_GROUP} ${DEV_USER}
 
 # Add Docker's official GPG key:
 RUN install -m 0755 -d /etc/apt/keyrings
